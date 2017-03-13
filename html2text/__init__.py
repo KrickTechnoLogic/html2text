@@ -77,6 +77,8 @@ class HTML2Text(HTMLParser.HTMLParser):
         self.link_url_close_mark = ')'
         self.link_title_open_mark = '['
         self.link_title_close_mark = ']'
+        self.italic_mark = '`'
+        self.headline_mark = '#'
         self.single_line_break = config.SINGLE_LINE_BREAK  # covered in cli
         self.use_automatic_links = config.USE_AUTOMATIC_LINKS  # covered in cli
         self.hide_strikethrough = False  # covered in cli
@@ -252,7 +254,7 @@ class HTML2Text(HTMLParser.HTMLParser):
                 self.o(self.strong_mark)
                 self.drop_white_space += 1
             if fixed:
-                self.o('`')
+                self.o(self.italic_mark)
                 self.drop_white_space += 1
                 self.code = True
         else:
@@ -265,7 +267,7 @@ class HTML2Text(HTMLParser.HTMLParser):
                     # empty emphasis, drop it
                     self.drop_white_space -= 1
                 else:
-                    self.o('`')
+                    self.o(self.italic_mark)
                 self.code = False
             if bold:
                 if self.drop_white_space:
@@ -324,7 +326,7 @@ class HTML2Text(HTMLParser.HTMLParser):
             self.p()
             if start:
                 self.inheader = True
-                self.o(hn(tag) * "#" + ' ')
+                self.o(hn(tag) * self.headline_mark + ' ')
             else:
                 self.inheader = False
                 return  # prevent redundant emphasis marks on headers
