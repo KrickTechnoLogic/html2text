@@ -73,6 +73,10 @@ class HTML2Text(HTMLParser.HTMLParser):
         self.ul_item_mark = '*'  # covered in cli
         self.emphasis_mark = '_'  # covered in cli
         self.strong_mark = '**'
+        self.link_url_open_mark = '('
+        self.link_url_close_mark = ')'
+        self.link_title_open_mark = '['
+        self.link_title_close_mark = ']'
         self.single_line_break = config.SINGLE_LINE_BREAK  # covered in cli
         self.use_automatic_links = config.USE_AUTOMATIC_LINKS  # covered in cli
         self.hide_strikethrough = False  # covered in cli
@@ -296,7 +300,7 @@ class HTML2Text(HTMLParser.HTMLParser):
         if (start and not self.maybe_automatic_link is None
                 and tag not in ['p', 'div', 'style', 'dl', 'dt']
                 and (tag != "img" or self.ignore_images)):
-            self.o("[")
+            self.o(self.link_title_open_mark)
             self.maybe_automatic_link = None
             self.empty_link = False
 
@@ -420,17 +424,17 @@ class HTML2Text(HTMLParser.HTMLParser):
                         self.maybe_automatic_link = None
                     elif a:
                         if self.empty_link:
-                            self.o("[")
+                            self.o(self.link_title_open_mark)
                             self.empty_link = False
                             self.maybe_automatic_link = None
                         if self.inline_links:
                             try:
                                 title = escape_md(a['title'])
                             except KeyError:
-                                self.o("](" + escape_md(urlparse.urljoin(self.baseurl, a['href'])) + ")")
+                                self.o(self.link_title_close_mark + self.link_url_open_mark + escape_md(urlparse.urljoin(self.baseurl, a['href'])) + self.link_url_close_mark)
                             else:
-                                self.o("](" + escape_md(urlparse.urljoin(self.baseurl, a['href']))
-                                       + ' "' + title + '" )')
+                                self.o(self.link_title_close_mark + self.link_url_open_mark + escape_md(urlparse.urljoin(self.baseurl, a['href']))
+                                       + ' "' + title + '" '+self.link_url_close_mark)
                         else:
                             i = self.previousIndex(a)
                             if i is not None:
@@ -440,7 +444,7 @@ class HTML2Text(HTMLParser.HTMLParser):
                                 a['count'] = self.acount
                                 a['outcount'] = self.outcount
                                 self.a.append(a)
-                            self.o("][" + str(a['count']) + "]")
+                            self.o(self.link_title_close_mark+self.link_title_open_mark + str(a['count']) + self.link_title_close_mark)
 
         if tag == "img" and start and not self.ignore_images:
             if 'src' in attrs:
@@ -471,7 +475,7 @@ class HTML2Text(HTMLParser.HTMLParser):
                         self.empty_link = False
                         return
                     else:
-                        self.o("[")
+                        self.o(self.link_title_open_mark)
                         self.maybe_automatic_link = None
                         self.empty_link = False
 
@@ -480,10 +484,10 @@ class HTML2Text(HTMLParser.HTMLParser):
                 if self.images_to_alt:
                     self.o(escape_md(alt))
                 else:
-                    self.o("![" + escape_md(alt) + "]")
+                    self.o("!"+self.link_title_open_mark + escape_md(alt) + self.link_title_close_mark)
                     if self.inline_links:
                         href = attrs.get('href') or ''
-                        self.o("(" + escape_md(urlparse.urljoin(self.baseurl, href)) + ")")
+                        self.o(self.link_url_open_mark + escape_md(urlparse.urljoin(self.baseurl, href)) + self.link_url_close_mark)
                     else:
                         i = self.previousIndex(attrs)
                         if i is not None:
@@ -493,7 +497,7 @@ class HTML2Text(HTMLParser.HTMLParser):
                             attrs['count'] = self.acount
                             attrs['outcount'] = self.outcount
                             self.a.append(attrs)
-                        self.o("[" + str(attrs['count']) + "]")
+                        self.o(self.link_title_open_mark + str(attrs['count']) + self.link_title_close_mark)
 
         if tag == 'dl' and start:
             self.p()
@@ -742,7 +746,7 @@ class HTML2Text(HTMLParser.HTMLParser):
                 self.empty_link = False
                 return
             else:
-                self.o("[")
+                self.o(self.link_title_open_mark)
                 self.maybe_automatic_link = None
                 self.empty_link = False
 
